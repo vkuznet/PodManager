@@ -71,7 +71,7 @@ jobs:
         username: ${{ secrets.CERN_LOGIN }}
         password: ${{ secrets.CERN_TOKEN }}
         registry: registry.cern.ch
-        repository: cmsweb/PodManager
+        repository: cmsweb/podmanager
         tag_with_ref: true
 
 #     - name: Push new image to k8s
