@@ -55,8 +55,8 @@ jobs:
 
     - name: Build image
       run: |
-        docker build . --tag docker.pkg.github.com/vkuznet/PodManager/PodManager
-        docker tag docker.pkg.github.com/vkuznet/PodManager/PodManager registry.cern.ch/cmsweb/PodManager
+        docker build . --tag docker.pkg.github.com/vkuznet/podmanager/podmanager
+        docker tag docker.pkg.github.com/vkuznet/podmanager/podmanager registry.cern.ch/cmsweb/podmanager
 
     - name: Login to registry.cern.ch
       uses: docker/login-action@v1.6.0
@@ -77,7 +77,7 @@ jobs:
 #     - name: Push new image to k8s
 #       run: |
 #         curl -ksLO https://raw.githubusercontent.com/vkuznet/imagebot/main/imagebot.sh
-#         sed -i -e "s,COMMIT,${{github.sha}},g" -e "s,REPOSITORY,${{github.repository}},g" -e "s,NAMESPACE,dbs,g" -e "s,TAG,${{steps.get-ref.outputs.tag}},g" -e "s,IMAGE,cmssw/PodManager,g" -e "s,SERVICE,PodManager,g" -e "s,HOST,${{secrets.IMAGEBOT_URL}},g" imagebot.sh
+#         sed -i -e "s,COMMIT,${{github.sha}},g" -e "s,REPOSITORY,${{github.repository}},g" -e "s,NAMESPACE,dbs,g" -e "s,TAG,${{steps.get-ref.outputs.tag}},g" -e "s,IMAGE,cmssw/podmanager,g" -e "s,SERVICE,podmanager,g" -e "s,HOST,${{secrets.IMAGEBOT_URL}},g" imagebot.sh
 #         chmod +x imagebot.sh
 #         cat imagebot.sh
 #         sh ./imagebot.sh

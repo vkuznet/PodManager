@@ -16,6 +16,5 @@ RUN git clone https://github.com/vkuznet/PodManager.git && cd PodManager && make
 # RUN mkdir -p /data
 # https://blog.baeke.info/2021/03/28/distroless-or-scratch-for-go-apps/
 FROM gcr.io/distroless/static AS final
-RUN mkdir -p /data
 COPY --from=builder /data/PodManager/PodManager /data/
 COPY --from=builder /data/kubectl /usr/bin/
