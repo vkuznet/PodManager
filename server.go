@@ -71,7 +71,7 @@ func (r *Rule) Match(alert Alert, verbose int) string {
 			//             }
 
 			// check if pod name exists in annotations or labels
-			if envMatch && validAlert {
+			if envMatch {
 				if pod, ok := alert.Annotations[r.Pod]; ok {
 					return pod.(string)
 				}
@@ -157,7 +157,7 @@ func podExist(pod, namespace string) bool {
 		log.Printf("unable to execute %v %v, error %v", cmd, args, err)
 		return false
 	}
-	if strings.Contains(out, "not found") {
+	if strings.Contains(string(out), "not found") {
 		return false
 	}
 	return true
@@ -176,7 +176,7 @@ func process(alert Alert, pod, namespace, action string, verbose int) {
 	}
 	if action == "restart" {
 		// make sure that pod exists
-		if podExists(pod, namespace) {
+		if podExist(pod, namespace) {
 			args := []string{"delete", "pod", pod, "-n", namespace}
 			cmd := exec.Command("kubectl", args...)
 			log.Println("execute", cmd)
