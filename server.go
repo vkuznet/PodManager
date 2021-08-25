@@ -43,8 +43,12 @@ func (r *Rule) Match(alert Alert, verbose int) string {
 					log.Printf("found alert %+v for rule %v, error %v", alert, r, err)
 				}
 			}
-			// find pod name
+			// find pod name in annotations
 			if pod, ok := alert.Annotations[r.Pod]; ok {
+				return pod.(string)
+			}
+			// find pod name in labels
+			if pod, ok := alert.Labels[r.Pod]; ok {
 				return pod.(string)
 			}
 		}
@@ -129,6 +133,7 @@ func process(alert Alert, pod, namespace, action string, verbose int) {
 	if action == "restart" {
 		args := []string{"delete", "pod", pod, "-n", namespace}
 		cmd := exec.Command("kubectl", args...)
+		log.Println("execute", cmd)
 		out, err := cmd.Output()
 		if err != nil {
 			log.Println("unable to execute kubectl, error", err)
