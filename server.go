@@ -29,6 +29,7 @@ type Rule struct {
 	Namespace string // pod namespace, e.g. dbs
 	Action    string // action value, e.g. restart
 	Pod       string // name of pod attribute, e.g. apod
+	Env       string // k8s environment
 }
 
 // Match matches given alert name with alert record labels
@@ -43,13 +44,39 @@ func (r *Rule) Match(alert Alert, verbose int) string {
 					log.Printf("found alert %+v for rule %v, error %v", alert, r, err)
 				}
 			}
-			// find pod name in annotations
-			if pod, ok := alert.Annotations[r.Pod]; ok {
-				return pod.(string)
+
+			// check if environment between alert and rule are matching
+			envMatch := false
+			if env, ok := alert.Labels[r.Env]; ok {
+				if env == r.Env {
+					envMatch = true
+				}
 			}
-			// find pod name in labels
-			if pod, ok := alert.Labels[r.Pod]; ok {
-				return pod.(string)
+			if env, ok := alert.Annotations[r.Env]; ok {
+				if env == r.Env {
+					envMatch = true
+				}
+			}
+			if r.Env == "" { // match any environment
+				envMatch = true
+			}
+
+			// check if alert is still valid
+			diff := alert.EndsAt.Sub(alert.StartsAt)
+			now := time.Now()
+			validAlert := false
+			if diff.Hours() < 1 && alert.EndsAt.After(now) && alert.StartsAt.Before(now) {
+				validAlert = true
+			}
+
+			// check if pod name exists in annotations or labels
+			if envMatch && validAlert {
+				if pod, ok := alert.Annotations[r.Pod]; ok {
+					return pod.(string)
+				}
+				if pod, ok := alert.Labels[r.Pod]; ok {
+					return pod.(string)
+				}
 			}
 		}
 	}
