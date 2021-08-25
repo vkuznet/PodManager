@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -62,12 +63,12 @@ func (r *Rule) Match(alert Alert, verbose int) string {
 			}
 
 			// check if alert is still valid
-			diff := alert.EndsAt.Sub(alert.StartsAt)
-			now := time.Now()
-			validAlert := false
-			if diff.Hours() < 1 && alert.EndsAt.After(now) && alert.StartsAt.Before(now) {
-				validAlert = true
-			}
+			//             diff := alert.EndsAt.Sub(alert.StartsAt)
+			//             now := time.Now()
+			//             validAlert := false
+			//             if diff.Hours() < 1 && alert.EndsAt.After(now) && alert.StartsAt.Before(now) {
+			//                 validAlert = true
+			//             }
 
 			// check if pod name exists in annotations or labels
 			if envMatch && validAlert {
@@ -146,6 +147,22 @@ func getAlerts(rurl string) ([]Alert, error) {
 
 }
 
+// helper function to check if pod exists in given namespace
+func podExist(pod, namespace string) bool {
+	args := []string{"get", "pod", pod, "-n", namespace}
+	cmd := exec.Command("kubectl", args...)
+	log.Println("execute", cmd)
+	out, err := cmd.Output()
+	if err != nil {
+		log.Printf("unable to execute %v %v, error %v", cmd, args, err)
+		return false
+	}
+	if strings.Contains(out, "not found") {
+		return false
+	}
+	return true
+}
+
 // process given alert
 func process(alert Alert, pod, namespace, action string, verbose int) {
 	if verbose > 0 {
@@ -158,15 +175,20 @@ func process(alert Alert, pod, namespace, action string, verbose int) {
 		log.Printf("perform action '%s' on pod '%s' within namespace '%s'\n", action, pod, namespace)
 	}
 	if action == "restart" {
-		args := []string{"delete", "pod", pod, "-n", namespace}
-		cmd := exec.Command("kubectl", args...)
-		log.Println("execute", cmd)
-		out, err := cmd.Output()
-		if err != nil {
-			log.Println("unable to execute kubectl, error", err)
-			return
+		// make sure that pod exists
+		if podExists(pod, namespace) {
+			args := []string{"delete", "pod", pod, "-n", namespace}
+			cmd := exec.Command("kubectl", args...)
+			log.Println("execute", cmd)
+			out, err := cmd.Output()
+			if err != nil {
+				log.Printf("unable to execute %v %v, error %v", cmd, args, err)
+				return
+			}
+			log.Println(out)
+		} else {
+			log.Printf("pod %s does not exists in namespace %s", pod, namespace)
 		}
-		log.Println(out)
 	} else {
 		cmd := fmt.Sprintf("kubectl delete pod %s -n %s", pod, namespace)
 		log.Println(cmd)
