@@ -32,11 +32,19 @@ type Rule struct {
 }
 
 // Match matches given alert name with alert record labels
-func (r *Rule) Match(alert Alert) string {
+func (r *Rule) Match(alert Alert, verbose int) string {
 	if name, ok := alert.Labels["alertname"]; ok {
 		if r.Name == name {
+			if verbose > 0 {
+				data, err := json.Marshal(alert)
+				if err == nil {
+					log.Printf("found alert %s for rule %v", string(data), r)
+				} else {
+					log.Printf("found alert %+v for rule %v, error %v", alert, r, err)
+				}
+			}
 			// find pod name
-			if pod, ok := alert.Labels[r.Pod]; ok {
+			if pod, ok := alert.Annotations[r.Pod]; ok {
 				return pod.(string)
 			}
 		}
@@ -75,7 +83,7 @@ func server(configFile string) {
 		}
 		for _, alert := range alerts {
 			for _, rule := range Config.Rules {
-				pod := rule.Match(alert)
+				pod := rule.Match(alert, Config.Verbose)
 				if pod != "" {
 					process(alert, pod, rule.Namespace, rule.Action, Config.Verbose)
 				}
