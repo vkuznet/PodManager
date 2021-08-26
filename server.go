@@ -26,11 +26,12 @@ type AMRecord struct {
 
 // Rule contains AM rule to process the alert
 type Rule struct {
-	Name      string // name of the alert to match
-	Namespace string // pod namespace, e.g. dbs
-	Action    string // action value, e.g. restart
-	Pod       string // name of pod attribute, e.g. apod
-	Env       string // k8s environment
+	Name         string `json:"name"`           // name of the alert to match
+	Namespace    string `json:"namespace"`      // pod namespace, e.g. dbs
+	Action       string `json:"action"`         // action value, e.g. restart
+	Pod          string `json:"pod"`            // name of pod attribute, e.g. apod
+	Env          string `json:"env"`            // k8s environment
+	PodNameMatch string `json:"pod_name_match"` // matching string for pod name
 }
 
 // Match matches given alert name with alert record labels
@@ -71,12 +72,21 @@ func (r *Rule) Match(alert Alert, verbose int) string {
 						log.Printf("found alert %+v for rule %+v, error %v", alert, r, err)
 					}
 				}
+				var podName string
 
 				if pod, ok := alert.Annotations[r.Pod]; ok {
-					return pod.(string)
+					podName = pod.(string)
 				}
 				if pod, ok := alert.Labels[r.Pod]; ok {
-					return pod.(string)
+					podName = pod.(string)
+				}
+				// check if pod name should be matched too
+				if r.PodNameMatch != "" {
+					if strings.Contains(podName, r.PodNameMatch) {
+						return podName
+					}
+				} else {
+					return podName
 				}
 			}
 		}
