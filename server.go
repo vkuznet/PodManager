@@ -37,23 +37,14 @@ type Rule struct {
 func (r *Rule) Match(alert Alert, verbose int) string {
 	if name, ok := alert.Labels["alertname"]; ok {
 		if r.Name == name {
-			if verbose > 0 {
-				data, err := json.Marshal(alert)
-				if err == nil {
-					log.Printf("found alert %s for rule %v", string(data), r)
-				} else {
-					log.Printf("found alert %+v for rule %v, error %v", alert, r, err)
-				}
-			}
-
 			// check if environment between alert and rule are matching
 			envMatch := false
-			if env, ok := alert.Labels[r.Env]; ok {
+			if env, ok := alert.Labels["env"]; ok {
 				if env == r.Env {
 					envMatch = true
 				}
 			}
-			if env, ok := alert.Annotations[r.Env]; ok {
+			if env, ok := alert.Annotations["env"]; ok {
 				if env == r.Env {
 					envMatch = true
 				}
@@ -72,6 +63,15 @@ func (r *Rule) Match(alert Alert, verbose int) string {
 
 			// check if pod name exists in annotations or labels
 			if envMatch {
+				if verbose > 0 {
+					data, err := json.Marshal(alert)
+					if err == nil {
+						log.Printf("found alert %s for rule %+v", string(data), r)
+					} else {
+						log.Printf("found alert %+v for rule %+v, error %v", alert, r, err)
+					}
+				}
+
 				if pod, ok := alert.Annotations[r.Pod]; ok {
 					return pod.(string)
 				}
