@@ -1,5 +1,6 @@
 VERSION=`git rev-parse --short HEAD`
-flags=-ldflags="-s -w -X main.version=${VERSION}"
+TAG=`git describe --tags`
+flags=-ldflags="-s -w -X main.gitVersion=${VERSION} -X main.gitTag=${TAG}"
 # flags=-ldflags="-s -w -extldflags -static"
 
 all: build

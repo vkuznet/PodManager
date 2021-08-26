@@ -8,14 +8,14 @@ import (
 	"time"
 )
 
-// version of the code
-var gitVersion string
+// version and tag of the code
+var gitVersion, gitTag string
 
 // Info function returns version string of the server
 func info() string {
 	goVersion := runtime.Version()
 	tstamp := time.Now().Format("2006-02-01")
-	return fmt.Sprintf("dbs2go git=%s go=%s date=%s", gitVersion, goVersion, tstamp)
+	return fmt.Sprintf("PodManager git=%s tag=%s go=%s date=%s", gitVersion, gitTag, goVersion, tstamp)
 }
 
 func main() {
